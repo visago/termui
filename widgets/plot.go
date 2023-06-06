@@ -25,6 +25,9 @@ type Plot struct {
 	LineColors []Color
 	AxesColor  Color // TODO
 	ShowAxes   bool
+	ShowAxesX  bool
+	ShowAxesY  bool
+	LabelAxesX bool
 
 	Marker          PlotMarker
 	DotMarkerRune   rune
@@ -34,10 +37,11 @@ type Plot struct {
 }
 
 const (
-	xAxisLabelsHeight = 1
-	yAxisLabelsWidth  = 4
-	xAxisLabelsGap    = 2
-	yAxisLabelsGap    = 1
+	xAxisLabelsHeight  = 1
+	yAxisLabelsWidth   = 4
+	xAxisLabelsGap     = 2
+	yAxisLabelsGap     = 1
+	xAxisLabelsTimeGap = 7
 )
 
 type PlotType uint
@@ -69,9 +73,13 @@ func NewPlot() *Plot {
 		Marker:          MarkerBraille,
 		DotMarkerRune:   DOT,
 		Data:            [][]float64{},
+		DataLabels:      []string{},
 		HorizontalScale: 1,
 		DrawDirection:   DrawRight,
 		ShowAxes:        true,
+		ShowAxesX:       true,
+		ShowAxesY:       true,
+		LabelAxesX:      false,
 		PlotType:        LineChart,
 	}
 }
@@ -168,33 +176,60 @@ func (self *Plot) plotAxes(buf *Buffer, maxVal float64) {
 		)
 	}
 	// draw x axis labels
-	// draw 0
-	buf.SetString(
-		"0",
-		NewStyle(ColorWhite),
-		image.Pt(self.Inner.Min.X+yAxisLabelsWidth, self.Inner.Max.Y-1),
-	)
-	// draw rest
-	for x := self.Inner.Min.X + yAxisLabelsWidth + (xAxisLabelsGap)*self.HorizontalScale + 1; x < self.Inner.Max.X-1; {
-		label := fmt.Sprintf(
-			"%d",
-			(x-(self.Inner.Min.X+yAxisLabelsWidth)-1)/(self.HorizontalScale)+1,
-		)
-		buf.SetString(
-			label,
-			NewStyle(ColorWhite),
-			image.Pt(x, self.Inner.Max.Y-1),
-		)
-		x += (len(label) + xAxisLabelsGap) * self.HorizontalScale
+	if self.ShowAxesX {
+		if self.LabelAxesX {
+			// draw 0
+			buf.SetString(
+				self.DataLabels[0],
+				NewStyle(ColorWhite),
+				image.Pt(self.Inner.Min.X+yAxisLabelsWidth, self.Inner.Max.Y-1),
+			)
+			// draw rest
+			for x := self.Inner.Min.X + yAxisLabelsWidth + (xAxisLabelsGap)*self.HorizontalScale + len(self.DataLabels[0]); x < self.Inner.Max.X-1; {
+				dx := (x-(self.Inner.Min.X+yAxisLabelsWidth)-1)/(self.HorizontalScale) + 1
+				label := ""
+				if dx < len(self.DataLabels) {
+					label = self.DataLabels[dx]
+				}
+				buf.SetString(
+					label,
+					NewStyle(ColorWhite),
+					image.Pt(x, self.Inner.Max.Y-1))
+
+				x += (len(label) + xAxisLabelsGap) * self.HorizontalScale
+			}
+		} else {
+			// draw 0
+			buf.SetString(
+				"0",
+				NewStyle(ColorWhite),
+				image.Pt(self.Inner.Min.X+yAxisLabelsWidth, self.Inner.Max.Y-1),
+			)
+			// draw rest
+			for x := self.Inner.Min.X + yAxisLabelsWidth + (xAxisLabelsGap)*self.HorizontalScale + 1; x < self.Inner.Max.X-1; {
+				label := fmt.Sprintf(
+					"%d",
+					(x-(self.Inner.Min.X+yAxisLabelsWidth)-1)/(self.HorizontalScale)+1,
+				)
+				buf.SetString(
+					label,
+					NewStyle(ColorWhite),
+					image.Pt(x, self.Inner.Max.Y-1),
+				)
+				x += (len(label) + xAxisLabelsGap) * self.HorizontalScale
+			}
+		}
 	}
-	// draw y axis labels
-	verticalScale := maxVal / float64(self.Inner.Dy()-xAxisLabelsHeight-1)
-	for i := 0; i*(yAxisLabelsGap+1) < self.Inner.Dy()-1; i++ {
-		buf.SetString(
-			fmt.Sprintf("%.2f", float64(i)*verticalScale*(yAxisLabelsGap+1)),
-			NewStyle(ColorWhite),
-			image.Pt(self.Inner.Min.X, self.Inner.Max.Y-(i*(yAxisLabelsGap+1))-2),
-		)
+	if self.ShowAxesY {
+		// draw y axis labels
+		verticalScale := maxVal / float64(self.Inner.Dy()-xAxisLabelsHeight-1)
+		for i := 0; i*(yAxisLabelsGap+1) < self.Inner.Dy()-1; i++ {
+			buf.SetString(
+				fmt.Sprintf("%.2f", float64(i)*verticalScale*(yAxisLabelsGap+1)),
+				NewStyle(ColorWhite),
+				image.Pt(self.Inner.Min.X, self.Inner.Max.Y-(i*(yAxisLabelsGap+1))-2),
+			)
+		}
 	}
 }
 

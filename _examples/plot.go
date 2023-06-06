@@ -35,9 +35,11 @@ func main() {
 	p0 := widgets.NewPlot()
 	p0.Title = "braille-mode Line Chart"
 	p0.Data = sinData
+	p0.DataLabels = []string{"00:00","00:01","00:02","00:03","00:04","00:05","00:06","00:07","00:08","00:09","00:10","00:11","00:12","00:13","00:14","00:15","00:16","00:17","00:18","00:19","00:20","00:21","00:22","00:23","00:24","00:25","00:26","00:27","00:28","00:29","00:30","00:31","00:32","00:33","00:34","00:35","00:36","00:37","00:38","00:39","00:40"}
 	p0.SetRect(0, 0, 50, 15)
 	p0.AxesColor = ui.ColorWhite
 	p0.LineColors[0] = ui.ColorGreen
+	p0.LabelAxesX = true
 
 	p1 := widgets.NewPlot()
 	p1.Title = "dot-mode line Chart"
@@ -48,6 +50,7 @@ func main() {
 	p1.AxesColor = ui.ColorWhite
 	p1.LineColors[0] = ui.ColorYellow
 	p1.DrawDirection = widgets.DrawLeft
+	p1.ShowAxesX = false
 
 	p2 := widgets.NewPlot()
 	p2.Title = "dot-mode Scatter Plot"
